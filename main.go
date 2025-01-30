@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
     const (
@@ -98,13 +99,90 @@ import (
         return tokens
     }
 
+    type ObjectNode struct {
+        nodeType string
+        value    Token
+        children map[string]*ObjectNode
+    }
+
+    func buildNode(tokenType string, value string) *ObjectNode {
+        return &ObjectNode{
+            nodeType: strings.ToLower(tokenType),
+                value: Token{
+                tokenType: tokenType,
+                value:     value,
+            },
+            children: make(map[string]*ObjectNode),
+        }
+        }
+
+    func parseValue(tokens []Token, currentPosition *int) *ObjectNode {
+        currentTokenType := tokens[*currentPosition].tokenType
+        switch currentTokenType {
+        case STRING, NUMBER, TRUE, FALSE:
+            node := buildNode(currentTokenType, tokens[*currentPosition].value)
+            *currentPosition++
+            return node
+        case LEFT_BRACE:
+            return parseObject(tokens, currentPosition)
+        default:
+            panic("Not token to parse")
+        }
+    }
+
+    func parseObject(tokens []Token, currentPosition *int) *ObjectNode {
+        *currentPosition++
+
+        objectNode := &ObjectNode{
+            nodeType: "object",
+            children: make(map[string]*ObjectNode),
+        }
+
+        for tokens[*currentPosition].tokenType != RIGHT_BRACE {
+            if tokens[*currentPosition].tokenType == COMMA {
+                *currentPosition++
+            }
+
+            if tokens[*currentPosition].tokenType == STRING {
+                key := tokens[*currentPosition].value
+                *currentPosition++
+
+                if tokens[*currentPosition].tokenType != COLON {
+                panic("Invalid JSON, expected a colon")
+                }
+                *currentPosition++
+
+                value := parseValue(tokens, currentPosition)
+
+                objectNode.children[key] = value
+            } else {
+                panic("Invalid JSON, expected a string key")
+                }
+
+                *currentPosition++
+
+                if *currentPosition >= len(tokens) {
+                break
+            }
+        }
+
+        return objectNode
+        }
+
+       func Parser(tokens []Token) *ObjectNode {
+        if len(tokens) == 0 {
+            panic("No tokens to parse")
+        }
+
+        i := 0
+        return parseValue(tokens, &i)
+    }
+
     func main() {
-        parser := Lexer(`{
-            "key1": true,
-            "key2": false,
-            "key3": null,
-            "key4": "value",
-            "key5": 101
-            }`)
+        parser := Lexer(`{ "name": "John", "age": 30, "isStudent": false`)
+
         fmt.Println(parser)
+
+        parsed := Parser(parser)
+        fmt.Println(parsed)
     }
