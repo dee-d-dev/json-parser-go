@@ -59,6 +59,7 @@ import (
                             currentPosition++
                             break
                         }
+
                         stringSequence += string(s[currentPosition])
                         currentPosition++
                     }
@@ -114,7 +115,7 @@ import (
             },
             children: make(map[string]*ObjectNode),
         }
-        }
+    }
 
     func parseValue(tokens []Token, currentPosition *int) *ObjectNode {
         currentTokenType := tokens[*currentPosition].tokenType
@@ -157,19 +158,19 @@ import (
                 objectNode.children[key] = value
             } else {
                 panic("Invalid JSON, expected a string key")
-                }
+            }
 
-                *currentPosition++
+            *currentPosition++
 
-                if *currentPosition >= len(tokens) {
+            if *currentPosition >= len(tokens) {
                 break
             }
         }
 
         return objectNode
-        }
+    }
 
-       func Parser(tokens []Token) *ObjectNode {
+    func Parser(tokens []Token) *ObjectNode {
         if len(tokens) == 0 {
             panic("No tokens to parse")
         }
